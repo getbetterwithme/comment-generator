@@ -431,7 +431,7 @@ export default function App() {
             </div>
             <div style={{ fontSize: 14, color: "#64748b", display: "flex", alignItems: "center", gap: 8 }}>
               <span>🔐</span>
-              <span>학생 정보 보호가 최우선! 업로드한 CSV 파일은 인터넷에 올라가지 않고 선생님 컴퓨터 안에서만 처리돼요. 마치 엑셀 파일을 여는 것처럼 로컬에서만 작동합니다. 안심하고 사용하세요!</span>
+              <span>학생 정보 보호가 최우선! 업로드한 XLSX 또는 CSV 파일은 인터넷에 올라가지 않고 선생님 컴퓨터 안에서만 처리돼요. 마치 엑셀 파일을 여는 것처럼 로컬에서만 작동합니다. 안심하고 사용하세요!</span>
             </div>
           </div>
 
@@ -571,7 +571,78 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div style={{ marginTop: 16, padding: "24px", background: "linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%)", border: "3px dashed #3b82f6", borderRadius: 16, textAlign: "center", cursor: "pointer", transition: "all 0.3s" }}>
+                <div 
+                  style={{ marginTop: 16, padding: "24px", background: "linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%)", border: "3px dashed #3b82f6", borderRadius: 16, textAlign: "center", cursor: "pointer", transition: "all 0.3s" }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.style.background = "linear-gradient(135deg, #dbeafe 0%, #fee2e2 100%)";
+                    e.currentTarget.style.borderColor = "#2563eb";
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.style.background = "linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%)";
+                    e.currentTarget.style.borderColor = "#3b82f6";
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.style.background = "linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%)";
+                    e.currentTarget.style.borderColor = "#3b82f6";
+                    
+                    const files = e.dataTransfer.files;
+                    if (files && files.length > 0) {
+                      const file = files[0];
+                      const fileName = file.name;
+                      const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
+
+                      if (isExcel) {
+                        // XLSX 파일 처리
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          try {
+                            const data = event.target.result;
+                            const workbook = XLSX.read(data, { type: "array" });
+                            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                            
+                            if (!jsonData || jsonData.length === 0) {
+                              setCsvError("Excel 파일에 데이터가 없습니다.");
+                              setStudents([]);
+                              setUploadedFileName("");
+                              return;
+                            }
+                            setStudents(jsonData);
+                            setUploadedFileName(fileName);
+                            setCsvError("");
+                          } catch (error) {
+                            setCsvError("Excel 파일을 읽는 중 오류가 발생했습니다.");
+                            setUploadedFileName("");
+                          }
+                        };
+                        reader.readAsArrayBuffer(file);
+                      } else {
+                        // CSV 파일 처리
+                        Papa.parse(file, {
+                          header: true,
+                          skipEmptyLines: true,
+                          complete: (results) => {
+                            if (!results.data || results.data.length === 0) {
+                              setCsvError("CSV 파일에 데이터가 없습니다.");
+                              setStudents([]);
+                              setUploadedFileName("");
+                              return;
+                            }
+                            setStudents(results.data);
+                            setUploadedFileName(file.name);
+                            setCsvError("");
+                          },
+                          error: () => {
+                            setCsvError("CSV 파일을 읽는 중 오류가 발생했습니다.");
+                            setUploadedFileName("");
+                          },
+                        });
+                      }
+                    }
+                  }}
+                >
                   <div style={{ fontSize: 48, marginBottom: 12 }}>📁</div>
                   <p style={{ fontSize: 16, fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>
                     여기에 파일을 드래그하거나 클릭하여 선택하세요
@@ -832,7 +903,7 @@ export default function App() {
               <span style={{ fontWeight: 700, color: "#667eea" }}>📋 학생이 작성한 설문 응답 검토</span>
               <br />
               <span style={{ fontSize: 14, color: "#64748b", lineHeight: 1.8, marginTop: 8, display: "block" }}>
-                아래 Q1~Q10 항목 중에서 학생의 성장, 역량, 인성을 드러내는 <strong style={{ color: "#334155" }}>실질적 내용</strong>을 판단하고, 
+                아래 Q1~Q11 항목 중에서 학생의 성장, 역량, 인성을 드러내는 <strong style={{ color: "#334155" }}>실질적 내용</strong>을 판단하고, 
                 종합의견에 <strong style={{ color: "#334155" }}>반영할 만한 가치가 있는 항목만 체크</strong>해주세요.
                 <br />
                 일반적이거나 추상적인 표현, 주변 학생과 구별되지 않는 답변은 <strong style={{ color: "#dc2626" }}>체크 해제</strong> 상태로 두시면 됩니다.
@@ -1092,7 +1163,7 @@ ${styleSamples.filter(s => s.text).length === 0 ? "(제공된 예시 없음 - �
 
 ---
 
-## 학생 자기평가 설문 응답 (Q1~Q10):
+## 학생 자기평가 설문 응답 (Q1~Q11):
 ${studentText}
 ${traitsText}
 
