@@ -1194,13 +1194,16 @@ ${traitsText}
 위 지침과 학생의 자기평가 설문 내용을 바탕으로 '행동특성 및 종합의견'을 작성해주세요.
 
 **작성 시 필수 요구사항:**
-- 분량: **정확히 400자 이상 500자 이내**의 한 문단 (공백 포함)
-  - 400자 미만이면 절대 안 됨 (더 자세하고 구체적으로 작성할 것)
-  - 500자를 초과하면 절대 안 됨 (불필요한 부분을 삭제하여 정확히 500자 이내로 조정할 것)
+- 분량: **400자 이상 500자 이내**의 한 문단 (공백 포함)
 - 너무 짧지 않도록 구체적인 사례와 관찰 내용을 충분히 포함할 것
 - 학생의 자기설문 내용을 1차 근거로 삼아 다양한 관점에서 서술할 것
 - 학업, 인성, 사회성 등 여러 영역을 균형있게 다룰 것
-- **작성 완료 후 반드시 글자수를 확인하고, 400~500자 범위에 있는지 검증한 후 제출할 것**`;
+
+**⚠️ 글자수 관리 (중요):**
+- 반영할 내용이 많은 경우, 교육전문가로서 우선순위를 판단하여 작성할 것
+- 학생의 성장, 역량, 인성을 가장 잘 보여주는 내용을 중심으로 선정할 것
+- 덜 중요한 내용은 생략하거나 축약하여 500자를 넘지 않도록 조정할 것
+- 의도적으로 글자수를 초과하지 말 것`;
 
                   setIsGenerating(true);
                   setApiError("");
@@ -1208,30 +1211,30 @@ ${traitsText}
 
                   try {
                     const result = await generateWithLLM(prompt);
-                    
-                    // 글자수 검증
                     const charCount = result.length;
+                    
+                    // 글자수 정보 표시만 함 (강제 제한 없음)
                     if (charCount < 400) {
-                      setApiError(`❌ 글자수 부족: ${charCount}자입니다. 최소 400자 이상이어야 합니다. 다시 생성해주세요.`);
-                      setIsGenerating(false);
-                      return;
-                    }
-                    if (charCount > 500) {
-                      setApiError(`⚠️ 글자수 초과: ${charCount}자입니다. 500자 이내로 조정하거나 다시 생성해주세요.`);
-                      setGeneratedText(result); // 사용자가 수정할 수 있도록 표시만 해줌
-                      setIsGenerating(false);
-                      return;
+                      setApiError(`⚠️ 참고: ${charCount}자로 400자 미만입니다. 가능하면 더 자세한 내용을 추가해주세요.`);
+                    } else if (charCount > 500) {
+                      setApiError(`ℹ️ 참고: ${charCount}자로 500자를 초과했습니다. 필요시 내용을 수정해주세요.`);
+                    } else {
+                      setApiError(""); // 정상 범위면 메시지 제거
                     }
                     
                     setGeneratedText(result);
-                    setApiError(""); // 성공 시 에러 메시지 제거
                     
-                    // 생성 이력에 추가
+                    // 생성 이력에 추가 (API 정보 포함)
                     const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || Date.now().toString();
                     setGenerationHistory(prev => ({
                       ...prev,
                       [studentId]: [
-                        { text: result, timestamp: new Date().toLocaleString('ko-KR') },
+                        { 
+                          text: result, 
+                          timestamp: new Date().toLocaleString('ko-KR'),
+                          apiProvider: apiProvider.toUpperCase(),
+                          apiModel: apiModel
+                        },
                         ...(prev[studentId] || [])
                       ]
                     }));
@@ -1289,15 +1292,26 @@ ${traitsText}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <div style={{ 
-                      background: generatedText.length > 500 ? "#fef2f2" : "#f0fdf4",
-                      border: `2px solid ${generatedText.length > 500 ? "#fecaca" : "#86efac"}`,
+                      background: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: 6,
+                      padding: "6px 12px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#374151"
+                    }}>
+                      🤖 {apiProvider.toUpperCase()} • {apiModel}
+                    </div>
+                    <div style={{ 
+                      background: "#f0fdf4",
+                      border: "2px solid #86efac",
                       borderRadius: 999,
                       padding: "6px 14px",
                       fontSize: 13,
                       fontWeight: 700,
-                      color: generatedText.length > 500 ? "#dc2626" : "#16a34a"
+                      color: "#16a34a"
                     }}>
-                      📝 {generatedText.length}자 {generatedText.length > 500 ? "(초과)" : ""}
+                      📝 {generatedText.length}자
                     </div>
                     <button
                       style={{
@@ -1307,18 +1321,6 @@ ${traitsText}
                       }}
                       onClick={() => {
                         const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
-                        const charCount = generatedText.length;
-                        
-                        // 글자수 검증
-                        if (charCount < 400) {
-                          alert(`❌ 글자수 부족!\n현재: ${charCount}자\n필요: 400자 이상\n\n더 자세한 내용을 추가해주세요.`);
-                          return;
-                        }
-                        if (charCount > 500) {
-                          alert(`⚠️ 글자수 초과!\n현재: ${charCount}자\n제한: 500자 이내\n\n불필요한 부분을 삭제해주세요.`);
-                          return;
-                        }
-                        
                         selectFinalOpinion(studentId, generatedText);
                         alert("✅ 이 의견이 최종 선택되었습니다!");
                       }}
@@ -1395,13 +1397,24 @@ ${traitsText}
                                   🕐 {item.timestamp}
                                 </span>
                                 <span style={{ 
-                                  background: item.text.length > 500 ? "#fef2f2" : "#f0fdf4",
-                                  border: `2px solid ${item.text.length > 500 ? "#fecaca" : "#86efac"}`,
+                                  background: "#f3f4f6",
+                                  border: "1px solid #d1d5db",
+                                  borderRadius: 6,
+                                  padding: "4px 10px",
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  color: "#374151"
+                                }}>
+                                  🤖 {item.apiProvider || "UNKNOWN"} • {item.apiModel || "-"}
+                                </span>
+                                <span style={{ 
+                                  background: "#f0fdf4",
+                                  border: "2px solid #86efac",
                                   borderRadius: 999,
                                   padding: "4px 10px",
                                   fontSize: 12,
                                   fontWeight: 700,
-                                  color: item.text.length > 500 ? "#dc2626" : "#16a34a"
+                                  color: "#16a34a"
                                 }}>
                                   📝 {item.text.length}자
                                 </span>
