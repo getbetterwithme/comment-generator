@@ -494,7 +494,7 @@ export default function App() {
   // 전체 작업 데이터 초기화 함수
   function resetAllData() {
     const confirmed = window.confirm(
-      "⚠️ 모든 작업 데이터가 삭제됩니다.\n\nCSV로 저장하지 않은 내용은 복구 불가능합니다.\n\n정말 진행하시겠습니까?"
+      "⚠️ 모든 작업 데이터가 삭제됩니다.\n\n• 학생 데이터, 생성 결과, Q항목 선택 등이 모두 초기화됩니다.\n• 입력하신 종합의견 예시는 그대로 유지됩니다.\n• CSV로 저장하지 않은 내용은 복구 불가능합니다.\n\n정말 진행하시겠습니까?"
     );
 
     if (!confirmed) return;
@@ -509,7 +509,7 @@ export default function App() {
     localStorage.removeItem("WORK_SELECTED_TRAITS");
     localStorage.removeItem("SELECTED_Q_ITEMS");
 
-    // 상태 초기화
+    // 상태 초기화 (styleSamples는 유지)
     setStep(1);
     setStudents([]);
     setUploadedFileName("");
@@ -522,7 +522,7 @@ export default function App() {
     setCsvError("");
     setApiError("");
 
-    alert("✅ 모든 작업 데이터가 초기화되었습니다!");
+    alert("✅ 모든 작업 데이터가 초기화되었습니다!\n(입력하신 종합의견 예시는 유지되었습니다)");
   }
 
   return (
