@@ -2,10 +2,6 @@
 
 > AI를 활용한 중학교 생활기록부 종합의견 자동 생성 시스템
 
-![Built with Claude](https://img.shields.io/badge/BUILT%20WITH-CLAUDE-FF69B4?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
-![React](https://img.shields.io/badge/React-18-blue?style=flat-square)
-
 ---
 
 ## 📌 개요
