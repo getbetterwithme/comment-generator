@@ -538,7 +538,7 @@ export default function App() {
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
               <div style={{ fontSize: 32 }}>📊</div>
-              <h2 style={h2}>2단계. CSV 파일 불러오기</h2>
+              <h2 style={h2}>2단계. CSV 또는 Excel 파일 불러오기</h2>
             </div>
             <p style={desc}>
               <span style={{ fontWeight: 700, color: "#667eea" }}>📂 구글 설문 응답 데이터를 불러옵니다.</span><br/>
