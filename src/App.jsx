@@ -957,7 +957,43 @@ export default function App() {
               </div>
             )}
 
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            {/* 설문조사 템플릿 안내 */}
+            <div style={{ marginTop: 24, padding: "16px", background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)", borderRadius: 12, border: "2px solid #fbbf24" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>📋</span>
+                <span style={{ fontWeight: 700, color: "#92400e", fontSize: 13 }}>설문조사 템플릿</span>
+              </div>
+              <p style={{ fontSize: 12, color: "#b45309", marginBottom: 12, lineHeight: 1.6 }}>
+                아직 설문조사를 만들지 않으셨다면 이 템플릿을 복제해서 사용하세요!
+              </p>
+              <a
+                href="https://joo.is/설문조사템플릿"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-block",
+                  padding: "8px 14px",
+                  background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
+                  color: "#fff",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  transition: "all 0.3s",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                📋 설문조사 템플릿 받기
+              </a>
+            </div>>
               <button style={btnOutline} onClick={() => setStep(1)}>
                 ← 이전
               </button>
