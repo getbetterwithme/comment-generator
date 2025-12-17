@@ -994,6 +994,8 @@ export default function App() {
                 📋 설문조사 템플릿 받기
               </a>
             </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
               <button style={btnOutline} onClick={() => setStep(1)}>
                 ← 이전
               </button>
