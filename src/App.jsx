@@ -25,7 +25,7 @@ export default function App() {
   const [generationHistory, setGenerationHistory] = useState({}); // { studentId: [{text, timestamp}] }
   const [selectedTraits, setSelectedTraits] = useState([]); // 선택된 학생 특성
   const [finalSelections, setFinalSelections] = useState({}); // { studentId: text } - 최종 선택된 의견
-  const [selectedQItems, setSelectedQItems] = useState({}); // { Q1: true, Q2: false, ... } - 반영할 Q 항목
+  const [selectedQItems, setSelectedQItems] = useState({}); // { studentId: { Q1: true, Q2: false, ... } } - 학생별 Q 항목 선택
 
   // 설정(API 설정)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -765,7 +765,7 @@ export default function App() {
               <div style={{ marginTop: 24, padding: "16px", background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)", borderRadius: 12, border: "2px solid #ddd6fe" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 18 }}>💡</span>
-                  <span style={{ fontWeight: 700, color: "#6b21a8", fontSize: 13 }}>처음 사용하신가요?</span>
+                  <span style={{ fontWeight: 700, color: "#6b21a8", fontSize: 13 }}>처음 사용하시는거라면?</span>
                 </div>
                 <p style={{ fontSize: 12, color: "#7c3aed", marginBottom: 12, lineHeight: 1.6 }}>
                   앱의 기능을 먼저 테스트해보려면 아래 샘플 파일을 다운로드하여 업로드해보세요.
@@ -841,7 +841,12 @@ export default function App() {
                   return (
                     <div
                       key={idx}
-                      onClick={() => setSelectedStudent(s)}
+                      onClick={() => {
+                        setSelectedStudent(s);
+                        // 해당 학생의 Q항목 선택 상태 복원
+                        const studentId = s["학번 네자리"] || s["이름"] || "";
+                        setSelectedQItems(selectedQItems[studentId] || {});
+                      }}
                       style={{
                         padding: "16px 20px",
                         cursor: "pointer",
@@ -934,7 +939,9 @@ export default function App() {
 
             <div style={{ display: "grid", gap: 10 }}>
               {qEntries.map(([k, v]) => {
-                const isQSelected = selectedQItems[k] === true; // 기본값은 false (체크 안됨, 명시적으로 true일 때만 선택됨)
+                const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                const studentQItems = selectedQItems[studentId] || {};
+                const isQSelected = studentQItems[k] === true; // 기본값은 false (체크 안됨, 명시적으로 true일 때만 선택됨)
                 return (
                   <div 
                     key={k} 
@@ -947,10 +954,17 @@ export default function App() {
                       transition: "all 0.2s",
                     }}
                     onClick={() => {
-                      setSelectedQItems(prev => ({
-                        ...prev,
-                        [k]: prev[k] === true ? false : true // toggle: false <-> true
-                      }));
+                      const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                      setSelectedQItems(prev => {
+                        const studentQItems = prev[studentId] || {};
+                        return {
+                          ...prev,
+                          [studentId]: {
+                            ...studentQItems,
+                            [k]: studentQItems[k] === true ? false : true // toggle
+                          }
+                        };
+                      });
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
@@ -982,7 +996,9 @@ export default function App() {
 
             {/* Q 항목 선택 요약 */}
             {(() => {
-              const selectedCount = qEntries.filter(([k]) => selectedQItems[k] === true).length;
+              const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+              const studentQItems = selectedQItems[studentId] || {};
+              const selectedCount = qEntries.filter(([k]) => studentQItems[k] === true).length;
               return selectedCount > 0 && (
                 <div style={{ marginTop: 12, padding: "12px 16px", background: "#f0fdf4", borderRadius: 12, border: "2px solid #86efac" }}>
                   <div style={{ fontSize: 13, color: "#16a34a", fontWeight: 600 }}>
@@ -1079,7 +1095,7 @@ export default function App() {
                   setGeneratedText(""); // 최신 결과만 초기화
                   setApiError("");
                   setSelectedTraits([]); // 특성 선택 초기화
-                  setSelectedQItems({}); // Q 항목 선택 초기화
+                  // Q 항목은 초기화하지 않음 - 다시 학생 선택 시 복원됨
                 }}
               >
                 ← 목록으로 돌아가기
@@ -1093,8 +1109,10 @@ export default function App() {
                 }}
                 disabled={isGenerating || !hasKey}
                 onClick={async () => {
-                  // 선택된 Q 항목만 필터링
-                  const selectedQEntries = qEntries.filter(([k]) => selectedQItems[k] === true);
+                  // 선택된 Q 항목만 필터링 (학생별)
+                  const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                  const studentQItems = selectedQItems[studentId] || {};
+                  const selectedQEntries = qEntries.filter(([k]) => studentQItems[k] === true);
                   
                   if (selectedQEntries.length === 0) {
                     setApiError("⚠️ 최소 1개 이상의 항목을 선택해주세요.");
