@@ -400,7 +400,7 @@ export default function App() {
                 BUILT WITH CLAUDE
               </div>
               <div style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", color: "#fff", padding: "6px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
-                제작: 서울사대부중 1학년부
+                제작: 서울사대부중 1학년부 허철호
               </div>
               <button
                 onClick={() => {
