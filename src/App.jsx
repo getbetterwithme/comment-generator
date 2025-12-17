@@ -538,12 +538,49 @@ export default function App() {
           <div style={card}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
               <div style={{ fontSize: 32 }}>📊</div>
-              <h2 style={h2}>2단계. CSV 파일 불러오기</h2>
+              <h2 style={h2}>2단계. CSV 또는 Excel 파일 불러오기</h2>
             </div>
             <p style={desc}>
               <span style={{ fontWeight: 700, color: "#667eea" }}>📂 구글 설문 응답 데이터를 불러옵니다.</span><br/>
               구글 설문 응답 CSV 또는 Excel(XLSX) 파일을 업로드하세요.
             </p>
+
+            {/* 샘플 파일 다운로드 섹션 */}
+            <div style={{ marginTop: 16, padding: "16px", background: "linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)", borderRadius: 12, border: "2px solid #c7d2fe" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 20 }}>📥</span>
+                <span style={{ fontWeight: 700, color: "#5b21b6", fontSize: 14 }}>테스트용 샘플 파일</span>
+              </div>
+              <p style={{ fontSize: 13, color: "#6b21a8", marginBottom: 12, lineHeight: 1.6 }}>
+                앱의 기능을 테스트해보고 싶으신가요? 아래 샘플 Excel 파일을 다운로드하여 업로드해보세요.
+              </p>
+              <a
+                href="https://github.com/getbetterwithme/comment-generator/raw/main/1학년 생활기록부 기초자료 조사(응답샘플).xlsx"
+                download
+                style={{
+                  display: "inline-block",
+                  padding: "10px 16px",
+                  background: "linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)",
+                  color: "#fff",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  transition: "all 0.3s",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.05)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(147, 51, 234, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                  e.target.style.boxShadow = "none";
+                }}
+              >
+                📊 샘플 파일 다운로드
+              </a>
+            </div>
 
             <div>
               {uploadedFileName ? (
