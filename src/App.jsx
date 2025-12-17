@@ -1131,6 +1131,53 @@ export default function App() {
               </span>
             </p>
 
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              <button
+                onClick={() => {
+                  const studentId = selectedStudent["_id"];
+                  setSelectedQItems(prev => {
+                    const studentQItems = {};
+                    qEntries.forEach(([k]) => {
+                      studentQItems[k] = true;
+                    });
+                    return {
+                      ...prev,
+                      [studentId]: studentQItems
+                    };
+                  });
+                }}
+                style={{
+                  ...btnOutline,
+                  borderColor: "#16a34a",
+                  color: "#16a34a",
+                }}
+              >
+                ☑️ 모두 체크
+              </button>
+              <button
+                onClick={() => {
+                  const studentId = selectedStudent["_id"];
+                  setSelectedQItems(prev => {
+                    const studentQItems = {};
+                    qEntries.forEach(([k]) => {
+                      studentQItems[k] = false;
+                    });
+                    return {
+                      ...prev,
+                      [studentId]: studentQItems
+                    };
+                  });
+                }}
+                style={{
+                  ...btnOutline,
+                  borderColor: "#dc2626",
+                  color: "#dc2626",
+                }}
+              >
+                ☐ 모두 체크 해제
+              </button>
+            </div>
+
             <div style={{ display: "grid", gap: 10 }}>
               {qEntries.map(([k, v]) => {
                 const studentId = selectedStudent["_id"]; // 고유 ID 사용
