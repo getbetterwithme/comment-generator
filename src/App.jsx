@@ -64,6 +64,7 @@ export default function App() {
     const savedKey = localStorage.getItem("LLM_API_KEY") || "";
     const savedEndpoint = localStorage.getItem("LLM_ENDPOINT") || "";
     const savedModel = localStorage.getItem("LLM_MODEL") || "";
+    const savedQItems = localStorage.getItem("SELECTED_Q_ITEMS");
 
     setApiProvider(savedProvider);
     setApiKey(savedKey);
@@ -72,7 +73,21 @@ export default function App() {
     setApiEndpointInput(savedEndpoint || providerConfigs[savedProvider]?.endpoint);
     setApiModel(savedModel || providerConfigs[savedProvider]?.model);
     setApiModelInput(savedModel || providerConfigs[savedProvider]?.model);
+    
+    // Q항목 선택 로드
+    if (savedQItems) {
+      try {
+        setSelectedQItems(JSON.parse(savedQItems));
+      } catch (e) {
+        console.error("Q항목 로드 실패:", e);
+      }
+    }
   }, []);
+
+  // Q항목 선택이 변경될 때마다 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem("SELECTED_Q_ITEMS", JSON.stringify(selectedQItems));
+  }, [selectedQItems]);
 
   const hasKey = !!apiKey;
   const currentEndpoint = apiEndpoint || providerConfigs[apiProvider]?.endpoint;
@@ -89,6 +104,19 @@ export default function App() {
     "차분함", "적극성", "자기주도성", "공감능력", "꾸준함",
     "계획성", "세심함", "친절함", "밝음", "호기심"
   ];
+
+  // 고유 학생 ID 생성 함수
+  const generateStudentId = (index) => {
+    return `${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // 학생 데이터에 고유 ID 추가
+  const addUniqueIdsToStudents = (studentsData) => {
+    return studentsData.map((student, idx) => ({
+      ...student,
+      _id: generateStudentId(idx)
+    }));
+  };
 
   // 종합의견 예시 필드 추가
   const addStyleSample = () => {
@@ -139,7 +167,7 @@ export default function App() {
 
     // 각 학생의 데이터 추가
     students.forEach(student => {
-      const studentId = student["학번 네자리"] || student["이름"] || "";
+      const studentId = student["_id"]; // 고유 ID 사용
       const finalOpinion = finalSelections[studentId];
       
       if (finalOpinion) {
@@ -631,7 +659,9 @@ export default function App() {
                               setUploadedFileName("");
                               return;
                             }
-                            setStudents(jsonData);
+                            // 고유 ID 추가
+                            const processedStudents = addUniqueIdsToStudents(jsonData);
+                            setStudents(processedStudents);
                             setUploadedFileName(fileName);
                             setCsvError("");
                           } catch (error) {
@@ -652,7 +682,9 @@ export default function App() {
                               setUploadedFileName("");
                               return;
                             }
-                            setStudents(results.data);
+                            // 고유 ID 추가
+                            const processedStudents = addUniqueIdsToStudents(results.data);
+                            setStudents(processedStudents);
                             setUploadedFileName(file.name);
                             setCsvError("");
                           },
@@ -719,7 +751,9 @@ export default function App() {
                                 setUploadedFileName("");
                                 return;
                               }
-                              setStudents(jsonData);
+                              // 고유 ID 추가
+                              const processedStudents = addUniqueIdsToStudents(jsonData);
+                              setStudents(processedStudents);
                               setUploadedFileName(fileName);
                               setCsvError("");
                             } catch (error) {
@@ -740,7 +774,9 @@ export default function App() {
                                 setUploadedFileName("");
                                 return;
                               }
-                              setStudents(results.data);
+                              // 고유 ID 추가
+                              const processedStudents = addUniqueIdsToStudents(results.data);
+                              setStudents(processedStudents);
                               setUploadedFileName(file.name);
                               setCsvError("");
                             },
@@ -835,7 +871,7 @@ export default function App() {
                 <div style={{ padding: 12, color: "#667085" }}>불러온 학생이 없습니다.</div>
               ) : (
                 students.map((s, idx) => {
-                  const studentId = s["학번 네자리"] || s["이름"] || "";
+                  const studentId = s["_id"]; // 고유 ID 사용
                   const isSelected = !!finalSelections[studentId];
                   
                   return (
@@ -844,7 +880,7 @@ export default function App() {
                       onClick={() => {
                         setSelectedStudent(s);
                         // 해당 학생의 Q항목 선택 상태 복원
-                        const studentId = s["학번 네자리"] || s["이름"] || "";
+                        const studentId = s["_id"]; // 고유 ID 사용
                         setSelectedQItems(selectedQItems[studentId] || {});
                       }}
                       style={{
@@ -939,7 +975,7 @@ export default function App() {
 
             <div style={{ display: "grid", gap: 10 }}>
               {qEntries.map(([k, v]) => {
-                const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                const studentId = selectedStudent["_id"]; // 고유 ID 사용
                 const studentQItems = selectedQItems[studentId] || {};
                 const isQSelected = studentQItems[k] === true; // 기본값은 false (체크 안됨, 명시적으로 true일 때만 선택됨)
                 return (
@@ -954,7 +990,7 @@ export default function App() {
                       transition: "all 0.2s",
                     }}
                     onClick={() => {
-                      const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                      const studentId = selectedStudent["_id"]; // 고유 ID 사용
                       setSelectedQItems(prev => {
                         const studentQItems = prev[studentId] || {};
                         return {
@@ -996,7 +1032,7 @@ export default function App() {
 
             {/* Q 항목 선택 요약 */}
             {(() => {
-              const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+              const studentId = selectedStudent["_id"]; // 고유 ID 사용
               const studentQItems = selectedQItems[studentId] || {};
               const selectedCount = qEntries.filter(([k]) => studentQItems[k] === true).length;
               return selectedCount > 0 && (
@@ -1110,7 +1146,7 @@ export default function App() {
                 disabled={isGenerating || !hasKey}
                 onClick={async () => {
                   // 선택된 Q 항목만 필터링 (학생별)
-                  const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                  const studentId = selectedStudent["_id"]; // 고유 ID 사용
                   const studentQItems = selectedQItems[studentId] || {};
                   const selectedQEntries = qEntries.filter(([k]) => studentQItems[k] === true);
                   
@@ -1243,7 +1279,7 @@ ${traitsText}
                     setGeneratedText(result);
                     
                     // 생성 이력에 추가 (API 정보 포함)
-                    const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || Date.now().toString();
+                    const studentId = selectedStudent["_id"]; // 고유 ID 사용
                     setGenerationHistory(prev => ({
                       ...prev,
                       [studentId]: [
@@ -1288,7 +1324,7 @@ ${traitsText}
                     <span style={{ fontSize: 24 }}>🎉</span>
                     <span style={{ fontWeight: 900, fontSize: 18, color: "#667eea" }}>최신 생성 결과</span>
                     {(() => {
-                      const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                      const studentId = selectedStudent["_id"]; // 고유 ID 사용
                       const isFinalSelected = finalSelections[studentId] === generatedText;
                       if (isFinalSelected) {
                         return (
@@ -1338,7 +1374,7 @@ ${traitsText}
                         fontSize: 13,
                       }}
                       onClick={() => {
-                        const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                        const studentId = selectedStudent["_id"]; // 고유 ID 사용
                         selectFinalOpinion(studentId, generatedText);
                         alert("✅ 이 의견이 최종 선택되었습니다!");
                       }}
@@ -1358,7 +1394,7 @@ ${traitsText}
 
             {/* 생성 이력 */}
             {(() => {
-              const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+              const studentId = selectedStudent["_id"]; // 고유 ID 사용
               const history = generationHistory[studentId] || [];
               
               if (history.length > 0) {
@@ -1371,7 +1407,7 @@ ${traitsText}
                     
                     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                       {history.map((item, idx) => {
-                        const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                        const studentId = selectedStudent["_id"]; // 고유 ID 사용
                         const isFinalSelected = finalSelections[studentId] === item.text;
                         
                         return (
@@ -1446,7 +1482,7 @@ ${traitsText}
                                     opacity: isFinalSelected ? 0.6 : 1,
                                   }}
                                   onClick={() => {
-                                    const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                                    const studentId = selectedStudent["_id"]; // 고유 ID 사용
                                     selectFinalOpinion(studentId, item.text);
                                     alert("✅ 이 의견이 최종 선택되었습니다!");
                                   }}
