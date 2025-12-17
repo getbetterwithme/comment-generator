@@ -993,7 +993,7 @@ export default function App() {
               >
                 📋 설문조사 템플릿 받기
               </a>
-            </div>>
+            </div>
               <button style={btnOutline} onClick={() => setStep(1)}>
                 ← 이전
               </button>
