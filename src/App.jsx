@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 export default function App() {
   const [step, setStep] = useState(1);
@@ -541,7 +542,7 @@ export default function App() {
             </div>
             <p style={desc}>
               <span style={{ fontWeight: 700, color: "#667eea" }}>📂 구글 설문 응답 데이터를 불러옵니다.</span><br/>
-              구글 설문 응답 CSV 파일을 업로드하세요.
+              구글 설문 응답 CSV 또는 Excel(XLSX) 파일을 업로드하세요.
             </p>
 
             <div>
@@ -571,30 +572,61 @@ export default function App() {
               ) : (
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx,.xls"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
 
-                    Papa.parse(file, {
-                      header: true,
-                      skipEmptyLines: true,
-                      complete: (results) => {
-                        if (!results.data || results.data.length === 0) {
-                          setCsvError("CSV 파일에 데이터가 없습니다.");
-                          setStudents([]);
+                    const fileName = file.name;
+                    const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
+
+                    if (isExcel) {
+                      // XLSX 파일 처리
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          const data = event.target.result;
+                          const workbook = XLSX.read(data, { type: "array" });
+                          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                          
+                          if (!jsonData || jsonData.length === 0) {
+                            setCsvError("Excel 파일에 데이터가 없습니다.");
+                            setStudents([]);
+                            setUploadedFileName("");
+                            return;
+                          }
+                          setStudents(jsonData);
+                          setUploadedFileName(fileName);
+                          setCsvError("");
+                        } catch (error) {
+                          setCsvError("Excel 파일을 읽는 중 오류가 발생했습니다.");
                           setUploadedFileName("");
-                          return;
                         }
-                        setStudents(results.data);
-                        setUploadedFileName(file.name);
-                        setCsvError("");
-                      },
-                      error: () => {
-                        setCsvError("CSV 파일을 읽는 중 오류가 발생했습니다.");
-                        setUploadedFileName("");
-                      },
-                    });
+                      };
+                      reader.readAsArrayBuffer(file);
+                    } else {
+                      // CSV 파일 처리 (기존 방식)
+                      Papa.parse(file, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                          if (!results.data || results.data.length === 0) {
+                            setCsvError("CSV 파일에 데이터가 없습니다.");
+                            setStudents([]);
+                            setUploadedFileName("");
+                            return;
+                          }
+                          setStudents(results.data);
+                          setUploadedFileName(file.name);
+                          setCsvError("");
+                        },
+                        error: () => {
+                          setCsvError("CSV 파일을 읽는 중 오류가 발생했습니다.");
+                          setUploadedFileName("");
+                        },
+                      });
+                    }
                   }}
                   style={{ marginTop: 12 }}
                 />
@@ -786,7 +818,7 @@ export default function App() {
 
             {/* Q 항목 선택 요약 */}
             {(() => {
-              const selectedCount = qEntries.filter(([k]) => selectedQItems[k] !== false).length;
+              const selectedCount = qEntries.filter(([k]) => selectedQItems[k] === true).length;
               return selectedCount > 0 && (
                 <div style={{ marginTop: 12, padding: "12px 16px", background: "#f0fdf4", borderRadius: 12, border: "2px solid #86efac" }}>
                   <div style={{ fontSize: 13, color: "#16a34a", fontWeight: 600 }}>
