@@ -1368,7 +1368,7 @@ ${traitsText}
 위 지침과 학생의 자기평가 설문 내용을 바탕으로 '행동특성 및 종합의견'을 작성해주세요.
 
 **작성 시 필수 요구사항:**
-- 분량: **400자 이상 500자 이내**의 한 문단 (공백 포함)
+- 분량: **450~500자 정도 목표** (공백 포함)
 - 너무 짧지 않도록 구체적인 사례와 관찰 내용을 충분히 포함할 것
 - 학생의 자기설문 내용을 1차 근거로 삼아 다양한 관점에서 서술할 것
 - 학업, 인성, 사회성 등 여러 영역을 균형있게 다룰 것
@@ -1376,22 +1376,34 @@ ${traitsText}
 **⚠️ 글자수 관리 (중요):**
 - 반영할 내용이 많은 경우, 교육전문가로서 우선순위를 판단하여 작성할 것
 - 학생의 성장, 역량, 인성을 가장 잘 보여주는 내용을 중심으로 선정할 것
-- 덜 중요한 내용은 생략하거나 축약하여 500자를 넘지 않도록 조정할 것
-- 의도적으로 글자수를 초과하지 말 것`;
+- 덜 중요한 내용은 생략하거나 축약하여 550자를 최대한 넘지 않도록 조정할 것
+- 너무 길어지면 가장 중요한 내용만 선별하여 자연스럽게 축약할 것`;
 
                   setIsGenerating(true);
                   setApiError("");
                   setGeneratedText("");
 
                   try {
-                    const result = await generateWithLLM(prompt);
-                    const charCount = result.length;
+                    let result = await generateWithLLM(prompt);
+                    let charCount = result.length;
                     
-                    // 글자수 정보 표시만 함 (강제 제한 없음)
-                    if (charCount < 400) {
-                      setApiError(`⚠️ 참고: ${charCount}자로 400자 미만입니다. 가능하면 더 자세한 내용을 추가해주세요.`);
-                    } else if (charCount > 500) {
-                      setApiError(`ℹ️ 참고: ${charCount}자로 500자를 초과했습니다. 필요시 내용을 수정해주세요.`);
+                    // 500자 초과 시 자동 축약
+                    if (charCount > 500) {
+                      setApiError("⏳ 생성결과가 500자를 초과하여 다듬는 중입니다...");
+                      
+                      // 축약 프롬프트
+                      const trimPrompt = `다음 텍스트를 450~490자 내로 자연스럽게 축약해주세요. 핵심 내용은 반드시 포함하되, 불필요한 표현은 제거해주세요. 만약 글자수를 줄이기가 어렵다면 내용의 중요성을 판단해 가장 후순위로 여겨지는 내용을 삭제하세요.
+
+---
+
+축약할 텍스트:
+${result}`;
+                      
+                      result = await generateWithLLM(trimPrompt);
+                      charCount = result.length;
+                      setApiError(""); // 축약 완료, 메시지 제거
+                    } else if (charCount < 400) {
+                      setApiError(`⚠️ 참고: ${charCount}자로 400자 미만입니다. 더 자세한 내용 추가를 권장합니다.`);
                     } else {
                       setApiError(""); // 정상 범위면 메시지 제거
                     }
