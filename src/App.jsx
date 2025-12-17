@@ -1423,7 +1423,7 @@ ${traitsText}
                   (() => {
                     const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
                     const historyCount = generationHistory[studentId]?.length || 0;
-                    return historyCount > 0 ? "🔄 다시 생성하기" : "✨ 종합의견 생성";
+                    return historyCount > 0 ? "🔄 다시 생성하기 (새로운 의견 생성)" : "✨ 종합의견 생성";
                   })()
                 )}
               </button>
