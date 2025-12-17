@@ -542,61 +542,25 @@ export default function App() {
             </div>
             <p style={desc}>
               <span style={{ fontWeight: 700, color: "#667eea" }}>📂 구글 설문 응답 데이터를 불러옵니다.</span><br/>
-              구글 설문 응답 CSV 또는 Excel(XLSX) 파일을 업로드하세요.
+              실제 설문조사 응답을 모아둔 스프레드시트를 XLSX 또는 CSV 형식으로 변환한 다음 여기에 업로드하세요.
             </p>
 
-            {/* 샘플 파일 다운로드 섹션 */}
-            <div style={{ marginTop: 16, padding: "16px", background: "linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)", borderRadius: 12, border: "2px solid #c7d2fe" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>📥</span>
-                <span style={{ fontWeight: 700, color: "#5b21b6", fontSize: 14 }}>테스트용 샘플 파일</span>
-              </div>
-              <p style={{ fontSize: 13, color: "#6b21a8", marginBottom: 12, lineHeight: 1.6 }}>
-                앱의 기능을 테스트해보고 싶으신가요? 아래 샘플 Excel 파일을 다운로드하여 업로드해보세요.
-              </p>
-              <a
-                href="https://github.com/getbetterwithme/comment-generator/raw/main/1학년 생활기록부 기초자료 조사(응답샘플).xlsx"
-                download
-                style={{
-                  display: "inline-block",
-                  padding: "10px 16px",
-                  background: "linear-gradient(135deg, #9333ea 0%, #7c3aed 100%)",
-                  color: "#fff",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  transition: "all 0.3s",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = "scale(1.05)";
-                  e.target.style.boxShadow = "0 4px 12px rgba(147, 51, 234, 0.4)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "scale(1)";
-                  e.target.style.boxShadow = "none";
-                }}
-              >
-                📊 샘플 파일 다운로드
-              </a>
-            </div>
-
+            {/* 파일 선택 섹션 - 강조됨 */}
             <div>
               {uploadedFileName ? (
-                <div style={{ marginTop: 12, padding: "16px", background: "#f0fdf4", border: "2px solid #86efac", borderRadius: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontSize: 20 }}>✅</span>
+                <div style={{ marginTop: 16, padding: "20px", background: "#f0fdf4", border: "3px solid #86efac", borderRadius: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <span style={{ fontSize: 28 }}>✅</span>
                     <div>
-                      <div style={{ fontWeight: 700, color: "#166534", fontSize: 15 }}>업로드된 파일</div>
+                      <div style={{ fontWeight: 700, color: "#166534", fontSize: 16 }}>업로드된 파일</div>
                       <div style={{ fontSize: 14, color: "#15803d", marginTop: 4 }}>📄 {uploadedFileName}</div>
                       <div style={{ fontSize: 13, color: "#16a34a", marginTop: 4 }}>총 {students.length}명의 학생 데이터</div>
                     </div>
                   </div>
                   <button 
-                    style={{ ...btnOutline, fontSize: 14, padding: "10px 20px" }}
+                    style={{ ...btnOutline, fontSize: 14, padding: "12px 24px" }}
                     onClick={() => {
-                      if (window.confirm("다른 CSV 파일을 업로드하시겠습니까? 현재 데이터가 삭제됩니다.")) {
+                      if (window.confirm("다른 파일을 업로드하시겠습니까? 현재 데이터가 삭제됩니다.")) {
                         setUploadedFileName("");
                         setStudents([]);
                         setCsvError("");
@@ -607,70 +571,140 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <input
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-
-                    const fileName = file.name;
-                    const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
-
-                    if (isExcel) {
-                      // XLSX 파일 처리
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        try {
-                          const data = event.target.result;
-                          const workbook = XLSX.read(data, { type: "array" });
-                          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                          
-                          if (!jsonData || jsonData.length === 0) {
-                            setCsvError("Excel 파일에 데이터가 없습니다.");
-                            setStudents([]);
-                            setUploadedFileName("");
-                            return;
-                          }
-                          setStudents(jsonData);
-                          setUploadedFileName(fileName);
-                          setCsvError("");
-                        } catch (error) {
-                          setCsvError("Excel 파일을 읽는 중 오류가 발생했습니다.");
-                          setUploadedFileName("");
-                        }
-                      };
-                      reader.readAsArrayBuffer(file);
-                    } else {
-                      // CSV 파일 처리 (기존 방식)
-                      Papa.parse(file, {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                          if (!results.data || results.data.length === 0) {
-                            setCsvError("CSV 파일에 데이터가 없습니다.");
-                            setStudents([]);
-                            setUploadedFileName("");
-                            return;
-                          }
-                          setStudents(results.data);
-                          setUploadedFileName(file.name);
-                          setCsvError("");
-                        },
-                        error: () => {
-                          setCsvError("CSV 파일을 읽는 중 오류가 발생했습니다.");
-                          setUploadedFileName("");
-                        },
-                      });
-                    }
+                <div style={{ marginTop: 16, padding: "24px", background: "linear-gradient(135deg, #f0f9ff 0%, #fef2f2 100%)", border: "3px dashed #3b82f6", borderRadius: 16, textAlign: "center", cursor: "pointer", transition: "all 0.3s" }}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>📁</div>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: "#1e40af", marginBottom: 4 }}>
+                    여기에 파일을 드래그하거나 클릭하여 선택하세요
+                  </p>
+                  <p style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
+                    지원 형식: CSV (.csv) 또는 Excel (.xlsx, .xls)
+                  </p>
+                  <label style={{
+                    display: "inline-block",
+                    padding: "14px 28px",
+                    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+                    color: "#fff",
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    cursor: "pointer",
+                    transition: "all 0.3s",
+                    boxShadow: "0 4px 15px rgba(59, 130, 246, 0.4)",
                   }}
-                  style={{ marginTop: 12 }}
-                />
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.4)";
+                  }}>
+                    📂 파일 선택
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        const fileName = file.name;
+                        const isExcel = fileName.endsWith(".xlsx") || fileName.endsWith(".xls");
+
+                        if (isExcel) {
+                          // XLSX 파일 처리
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            try {
+                              const data = event.target.result;
+                              const workbook = XLSX.read(data, { type: "array" });
+                              const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                              const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                              
+                              if (!jsonData || jsonData.length === 0) {
+                                setCsvError("Excel 파일에 데이터가 없습니다.");
+                                setStudents([]);
+                                setUploadedFileName("");
+                                return;
+                              }
+                              setStudents(jsonData);
+                              setUploadedFileName(fileName);
+                              setCsvError("");
+                            } catch (error) {
+                              setCsvError("Excel 파일을 읽는 중 오류가 발생했습니다.");
+                              setUploadedFileName("");
+                            }
+                          };
+                          reader.readAsArrayBuffer(file);
+                        } else {
+                          // CSV 파일 처리 (기존 방식)
+                          Papa.parse(file, {
+                            header: true,
+                            skipEmptyLines: true,
+                            complete: (results) => {
+                              if (!results.data || results.data.length === 0) {
+                                setCsvError("CSV 파일에 데이터가 없습니다.");
+                                setStudents([]);
+                                setUploadedFileName("");
+                                return;
+                              }
+                              setStudents(results.data);
+                              setUploadedFileName(file.name);
+                              setCsvError("");
+                            },
+                            error: () => {
+                              setCsvError("CSV 파일을 읽는 중 오류가 발생했습니다.");
+                              setUploadedFileName("");
+                            },
+                          });
+                        }
+                      }}
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                </div>
               )}
             </div>
 
             {csvError && <div style={err}><span>⚠️</span><span>{csvError}</span></div>}
+
+            {/* 샘플 파일 다운로드 섹션 - 하단 */}
+            {!uploadedFileName && (
+              <div style={{ marginTop: 24, padding: "16px", background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)", borderRadius: 12, border: "2px solid #ddd6fe" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 18 }}>💡</span>
+                  <span style={{ fontWeight: 700, color: "#6b21a8", fontSize: 13 }}>처음 사용하신가요?</span>
+                </div>
+                <p style={{ fontSize: 12, color: "#7c3aed", marginBottom: 12, lineHeight: 1.6 }}>
+                  앱의 기능을 먼저 테스트해보려면 아래 샘플 파일을 다운로드하여 업로드해보세요.
+                </p>
+                <a
+                  href="https://github.com/getbetterwithme/comment-generator/raw/main/1학년 생활기록부 기초자료 조사(응답샘플).xlsx"
+                  download
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 14px",
+                    background: "linear-gradient(135deg, #a855f7 0%, #9333ea 100%)",
+                    color: "#fff",
+                    borderRadius: 8,
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    fontSize: 12,
+                    transition: "all 0.3s",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "scale(1.05)";
+                    e.target.style.boxShadow = "0 4px 12px rgba(168, 85, 247, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  📥 샘플 파일 다운로드
+                </a>
+              </div>
+            )}
 
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button style={btnOutline} onClick={() => setStep(1)}>
