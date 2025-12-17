@@ -265,7 +265,7 @@ export default function App() {
           ],
           generationConfig: {
             temperature: 0.4,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 600,
           },
         }),
       });
@@ -1194,10 +1194,13 @@ ${traitsText}
 위 지침과 학생의 자기평가 설문 내용을 바탕으로 '행동특성 및 종합의견'을 작성해주세요.
 
 **작성 시 필수 요구사항:**
-- 분량: **400자 이상 500자 이내**의 한 문단 (공백 포함)
+- 분량: **정확히 400자 이상 500자 이내**의 한 문단 (공백 포함)
+  - 400자 미만이면 절대 안 됨 (더 자세하고 구체적으로 작성할 것)
+  - 500자를 초과하면 절대 안 됨 (불필요한 부분을 삭제하여 정확히 500자 이내로 조정할 것)
 - 너무 짧지 않도록 구체적인 사례와 관찰 내용을 충분히 포함할 것
 - 학생의 자기설문 내용을 1차 근거로 삼아 다양한 관점에서 서술할 것
-- 학업, 인성, 사회성 등 여러 영역을 균형있게 다룰 것`;
+- 학업, 인성, 사회성 등 여러 영역을 균형있게 다룰 것
+- **작성 완료 후 반드시 글자수를 확인하고, 400~500자 범위에 있는지 검증한 후 제출할 것**`;
 
                   setIsGenerating(true);
                   setApiError("");
@@ -1205,7 +1208,23 @@ ${traitsText}
 
                   try {
                     const result = await generateWithLLM(prompt);
+                    
+                    // 글자수 검증
+                    const charCount = result.length;
+                    if (charCount < 400) {
+                      setApiError(`❌ 글자수 부족: ${charCount}자입니다. 최소 400자 이상이어야 합니다. 다시 생성해주세요.`);
+                      setIsGenerating(false);
+                      return;
+                    }
+                    if (charCount > 500) {
+                      setApiError(`⚠️ 글자수 초과: ${charCount}자입니다. 500자 이내로 조정하거나 다시 생성해주세요.`);
+                      setGeneratedText(result); // 사용자가 수정할 수 있도록 표시만 해줌
+                      setIsGenerating(false);
+                      return;
+                    }
+                    
                     setGeneratedText(result);
+                    setApiError(""); // 성공 시 에러 메시지 제거
                     
                     // 생성 이력에 추가
                     const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || Date.now().toString();
@@ -1288,6 +1307,18 @@ ${traitsText}
                       }}
                       onClick={() => {
                         const studentId = selectedStudent["학번 네자리"] || selectedStudent["이름"] || "";
+                        const charCount = generatedText.length;
+                        
+                        // 글자수 검증
+                        if (charCount < 400) {
+                          alert(`❌ 글자수 부족!\n현재: ${charCount}자\n필요: 400자 이상\n\n더 자세한 내용을 추가해주세요.`);
+                          return;
+                        }
+                        if (charCount > 500) {
+                          alert(`⚠️ 글자수 초과!\n현재: ${charCount}자\n제한: 500자 이내\n\n불필요한 부분을 삭제해주세요.`);
+                          return;
+                        }
+                        
                         selectFinalOpinion(studentId, generatedText);
                         alert("✅ 이 의견이 최종 선택되었습니다!");
                       }}
