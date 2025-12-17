@@ -65,6 +65,15 @@ export default function App() {
     const savedEndpoint = localStorage.getItem("LLM_ENDPOINT") || "";
     const savedModel = localStorage.getItem("LLM_MODEL") || "";
     const savedQItems = localStorage.getItem("SELECTED_Q_ITEMS");
+    
+    // 작업 데이터 복원
+    const savedStep = localStorage.getItem("WORK_STEP");
+    const savedStudents = localStorage.getItem("WORK_STUDENTS");
+    const savedUploadedFileName = localStorage.getItem("WORK_UPLOADED_FILE_NAME");
+    const savedGeneratedText = localStorage.getItem("WORK_GENERATED_TEXT");
+    const savedGenerationHistory = localStorage.getItem("WORK_GENERATION_HISTORY");
+    const savedFinalSelections = localStorage.getItem("WORK_FINAL_SELECTIONS");
+    const savedSelectedTraits = localStorage.getItem("WORK_SELECTED_TRAITS");
 
     setApiProvider(savedProvider);
     setApiKey(savedKey);
@@ -82,12 +91,80 @@ export default function App() {
         console.error("Q항목 로드 실패:", e);
       }
     }
+    
+    // 작업 데이터 복원
+    if (savedStep) setStep(parseInt(savedStep));
+    if (savedStudents) {
+      try {
+        setStudents(JSON.parse(savedStudents));
+      } catch (e) {
+        console.error("학생 데이터 로드 실패:", e);
+      }
+    }
+    if (savedUploadedFileName) setUploadedFileName(savedUploadedFileName);
+    if (savedGeneratedText) setGeneratedText(savedGeneratedText);
+    if (savedGenerationHistory) {
+      try {
+        setGenerationHistory(JSON.parse(savedGenerationHistory));
+      } catch (e) {
+        console.error("생성 이력 로드 실패:", e);
+      }
+    }
+    if (savedFinalSelections) {
+      try {
+        setFinalSelections(JSON.parse(savedFinalSelections));
+      } catch (e) {
+        console.error("최종 선택 로드 실패:", e);
+      }
+    }
+    if (savedSelectedTraits) {
+      try {
+        setSelectedTraits(JSON.parse(savedSelectedTraits));
+      } catch (e) {
+        console.error("선택 특성 로드 실패:", e);
+      }
+    }
   }, []);
 
   // Q항목 선택이 변경될 때마다 localStorage에 저장
   useEffect(() => {
     localStorage.setItem("SELECTED_Q_ITEMS", JSON.stringify(selectedQItems));
   }, [selectedQItems]);
+
+  // step 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_STEP", step.toString());
+  }, [step]);
+
+  // students 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_STUDENTS", JSON.stringify(students));
+  }, [students]);
+
+  // uploadedFileName 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_UPLOADED_FILE_NAME", uploadedFileName);
+  }, [uploadedFileName]);
+
+  // generatedText 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_GENERATED_TEXT", generatedText);
+  }, [generatedText]);
+
+  // generationHistory 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_GENERATION_HISTORY", JSON.stringify(generationHistory));
+  }, [generationHistory]);
+
+  // finalSelections 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_FINAL_SELECTIONS", JSON.stringify(finalSelections));
+  }, [finalSelections]);
+
+  // selectedTraits 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("WORK_SELECTED_TRAITS", JSON.stringify(selectedTraits));
+  }, [selectedTraits]);
 
   const hasKey = !!apiKey;
   const currentEndpoint = apiEndpoint || providerConfigs[apiProvider]?.endpoint;
@@ -414,6 +491,40 @@ export default function App() {
     setGeneratedText("");
   }
 
+  // 전체 작업 데이터 초기화 함수
+  function resetAllData() {
+    const confirmed = window.confirm(
+      "⚠️ 모든 작업 데이터가 삭제됩니다.\n\nCSV로 저장하지 않은 내용은 복구 불가능합니다.\n\n정말 진행하시겠습니까?"
+    );
+
+    if (!confirmed) return;
+
+    // localStorage에서 작업 데이터 삭제
+    localStorage.removeItem("WORK_STEP");
+    localStorage.removeItem("WORK_STUDENTS");
+    localStorage.removeItem("WORK_UPLOADED_FILE_NAME");
+    localStorage.removeItem("WORK_GENERATED_TEXT");
+    localStorage.removeItem("WORK_GENERATION_HISTORY");
+    localStorage.removeItem("WORK_FINAL_SELECTIONS");
+    localStorage.removeItem("WORK_SELECTED_TRAITS");
+    localStorage.removeItem("SELECTED_Q_ITEMS");
+
+    // 상태 초기화
+    setStep(1);
+    setStudents([]);
+    setUploadedFileName("");
+    setGeneratedText("");
+    setGenerationHistory({});
+    setFinalSelections({});
+    setSelectedQItems({});
+    setSelectedTraits([]);
+    setSelectedStudent(null);
+    setCsvError("");
+    setApiError("");
+
+    alert("✅ 모든 작업 데이터가 초기화되었습니다!");
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", padding: "20px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 16px" }}>
@@ -497,6 +608,17 @@ export default function App() {
             </div>
             <button style={btnOutline} onClick={openSettings}>
               ⚙️ 설정
+            </button>
+            <button 
+              style={{
+                ...btnOutline,
+                borderColor: "#ef4444",
+                color: "#ef4444",
+              }}
+              onClick={resetAllData}
+              title="모든 작업 데이터를 초기화합니다"
+            >
+              🔄 전체 초기화
             </button>
           </div>
         </div>
