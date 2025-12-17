@@ -51,7 +51,7 @@ export default function App() {
     },
     gemini: {
       endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/",
-      model: "gemini-1.0-pro",
+      model: "gemini-2.0-flash",
     },
     custom: {
       endpoint: "",
@@ -251,35 +251,57 @@ export default function App() {
     // Gemini는 REST API를 사용하며 URL에 API 키를 포함
     const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
     
-    const response = await fetch(geminiEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 1024,
+    try {
+      const response = await fetch(geminiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 1024,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      let msg = "Gemini API 호출 실패";
-      try {
-        const err = await response.json();
-        msg = err?.error?.message || err?.message || msg;
-      } catch {}
-      throw new Error(msg);
+      if (!response.ok) {
+        let msg = "Gemini API 호출 실패";
+        try {
+          const err = await response.json();
+          msg = err?.error?.message || err?.message || `HTTP ${response.status}: ${msg}`;
+          console.error("Gemini API Error Details:", err);
+        } catch (parseErr) {
+          console.error("Gemini API Response Error:", response.status, response.statusText);
+          msg = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(msg);
+      }
+
+      const data = await response.json();
+      
+      // 응답 구조 확인
+      if (!data.candidates || !data.candidates[0]) {
+        console.error("Gemini API Response Structure Error:", data);
+        throw new Error("Gemini API: 응답 형식이 올바르지 않습니다.");
+      }
+      
+      const text = data.candidates[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        console.error("Gemini API: No text in response", data);
+        throw new Error("Gemini API: 응답에 텍스트가 없습니다.");
+      }
+      
+      return text;
+    } catch (error) {
+      console.error("Gemini API Call Error:", error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   }
 
   function openSettings() {
