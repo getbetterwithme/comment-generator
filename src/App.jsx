@@ -879,9 +879,7 @@ export default function App() {
                       key={idx}
                       onClick={() => {
                         setSelectedStudent(s);
-                        // 해당 학생의 Q항목 선택 상태 복원
-                        const studentId = s["_id"]; // 고유 ID 사용
-                        setSelectedQItems(selectedQItems[studentId] || {});
+                        // Q항목과 특성은 이미 전역 상태에서 관리되므로 복원할 필요 없음
                       }}
                       style={{
                         padding: "16px 20px",
