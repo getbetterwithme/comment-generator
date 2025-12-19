@@ -543,23 +543,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => {
-                  const email = "june_wook@snu.ms.kr";
-                  
-                  // 모던 Clipboard API 시도
-                  if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(email).then(() => {
-                      setCustomAlert({ 
-                        show: true, 
-                        message: "✅ 메일 주소가 복사되었습니다.\n\njune_wook@snu.ms.kr\n\n문의사항을 메일로 보내주세요." 
-                      });
-                    }).catch(() => {
-                      // 폴백: 레거시 방식
-                      copyToClipboardFallback(email);
-                    });
-                  } else {
-                    // 폴백: 레거시 방식
-                    copyToClipboardFallback(email);
-                  }
+                  window.open("https://joo.is/생기부사용설명서", "_blank");
                 }}
                 style={{ 
                   display: "flex", 
@@ -584,10 +568,10 @@ export default function App() {
                   e.currentTarget.style.transform = "scale(1)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
-                title="사용방법 문의 - 클릭하면 메일 주소가 복사됩니다"
+                title="사용방법 보기 - 클릭하면 사용설명서가 열립니다"
               >
-                <span>❓</span>
-                <span>사용방법 문의</span>
+                <span>📖</span>
+                <span>사용방법 보기</span>
               </button>
             </div>
             <div style={{ fontSize: 14, color: "#64748b", display: "flex", alignItems: "center", gap: 8 }}>
