@@ -65,6 +65,7 @@ export default function App() {
     const savedEndpoint = localStorage.getItem("LLM_ENDPOINT") || "";
     const savedModel = localStorage.getItem("LLM_MODEL") || "";
     const savedQItems = localStorage.getItem("SELECTED_Q_ITEMS");
+    const savedStyleSamples = localStorage.getItem("STYLE_SAMPLES");
     
     // 작업 데이터 복원
     const savedStep = localStorage.getItem("WORK_STEP");
@@ -82,6 +83,19 @@ export default function App() {
     setApiEndpointInput(savedEndpoint || providerConfigs[savedProvider]?.endpoint);
     setApiModel(savedModel || providerConfigs[savedProvider]?.model);
     setApiModelInput(savedModel || providerConfigs[savedProvider]?.model);
+    
+    // 종합의견 예시 로드
+    if (savedStyleSamples) {
+      try {
+        const parsed = JSON.parse(savedStyleSamples);
+        setStyleSamples(parsed);
+        // nextId도 복원
+        const maxId = Math.max(...parsed.map(s => s.id), 0);
+        setNextId(maxId + 1);
+      } catch (e) {
+        console.error("종합의견 예시 로드 실패:", e);
+      }
+    }
     
     // Q항목 선택 로드
     if (savedQItems) {
@@ -130,6 +144,11 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("SELECTED_Q_ITEMS", JSON.stringify(selectedQItems));
   }, [selectedQItems]);
+
+  // styleSamples 변경 시 저장
+  useEffect(() => {
+    localStorage.setItem("STYLE_SAMPLES", JSON.stringify(styleSamples));
+  }, [styleSamples]);
 
   // step 변경 시 저장
   useEffect(() => {
